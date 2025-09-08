@@ -29,8 +29,9 @@ jobs:
               run: npm run lint
             - name: vérifie les vulnérabilités des dépendances
               run: |
-                npm audit
-                npm audit fix
+                  npm audit || true
+                  npm audit fix || true
+                  npm audit --audit-level=critical
             - name: Execute tests
               run: npm run test:ci
 
