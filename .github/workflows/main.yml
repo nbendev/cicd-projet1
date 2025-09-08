@@ -39,7 +39,7 @@ jobs:
         run: npm run test:ci
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
-        with:
+        env:
             token: ${{ secrets.CODECOV_TOKEN }}
 
 
@@ -137,6 +137,11 @@ jobs:
           wait-on: http://localhost:4173
           wait-on-timeout: 60
           config: baseUrl=http://localhost:4173
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v5
+        env:
+            token: ${{ secrets.CODECOV_TOKEN }}
+
 
   deploy:
     needs: [check-tests-backend, test-e2e-frontend]
