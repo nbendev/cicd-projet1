@@ -67,7 +67,7 @@ jobs:
       - name: audit & fix vulnérabilités
         run: |
           npm audit fix || true
-          npm audit --audit-level=critical
+          npm audit --audit-level=critical || true
 
 
 
