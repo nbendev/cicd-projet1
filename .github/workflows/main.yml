@@ -117,13 +117,19 @@ jobs:
 
       - name: install dependencies
         run: |
-          cd server
+          cd client
           npm ci --prefer-offline
-      - name: download build artifact
-        uses: actions/download-artifact@v5
-        with:
-          name: build
-          path: ./client/dist
+          
+      - name: build frontend
+        run: |
+          cd client
+          npm run build:e2e
+
+      - name: install client dependencies
+        run: |
+          cd client
+          npm ci --prefer-offline
+
       - name: lancer le serveur backend
         run: |
           cd server
