@@ -1,4 +1,4 @@
-// cypress.config.cjs
+/* eslint-env node */
 const { defineConfig } = require('cypress');
 
 module.exports = defineConfig({
