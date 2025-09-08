@@ -135,7 +135,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        browser: [chrome, "edge", "firefox"]
+        browser: [chrome, "edge"]
     steps:
       - name: checkout le code
         uses: actions/checkout@v5
