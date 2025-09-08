@@ -99,8 +99,44 @@ jobs:
           path: ./client/dist
 
 
+  test-e2e-frontend:
+    needs: build-frontend
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout le code
+        uses: actions/checkout@v4
+
+      - name: installer node.js
+        uses: actions/setup-node@v4
+        with:
+          cache: 'npm'
+          cache-dependency-path: '**package-lock.json'
+
+      - name: install dependencies
+        run: |
+          cd server
+          npm ci --prefer-offline
+      - name: download build artifact
+        uses: actions/download-artifact@v3
+        with:
+          name: build
+          path: ./client/dist
+      - name: lancer le serveur backend
+        run: |
+          cd server
+          npm start
+      - name: exec cypress
+        uses: cypress-io/github-action@v6
+        with:
+          working-directory: ./client
+          browser: chrome
+          start: npm run preview
+          wait-on: http://localhost:4173
+          wait-on-timeout: 60
+          config: baseUrl=http://localhost:4173
+
   deploy:
-    needs: [check-tests-backend, build-frontend]
+    needs: [check-tests-backend, test-e2e-frontend]
     runs-on: ubuntu-latest
     steps:
       - name: checkout le code
