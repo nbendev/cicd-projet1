@@ -90,13 +90,16 @@ jobs:
       - name: install dependencies
         run: npm ci --prefer-offline
 
+        
       - name: Build application frontend
         run: npm run build
-      - name: upload build artifact
-        uses: actions/upload-artifact@v5
+    
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4.6.2
         with:
           name: build
-          path: ./client/dist
+          path: client/dist
+
 
 
   test-e2e-frontend:
