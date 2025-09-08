@@ -41,7 +41,7 @@ jobs:
             - name: déployer sur le serveur
               run: |
                   eval $(ssh-agent -s)
-                  ssh-add - <<< ${{ secrets.SSH_KEY_VPS }}
+                  ssh-add - <<< "${{ secrets.SSH_KEY_VPS }}""
                   mkdir -p ~/.ssh
                   ssh-keyscan -H $SERVER_IP >> ~/.ssh/known_hosts
                   scp -r ./server $SERVER_USER@$SERVER_IP:/var/www
