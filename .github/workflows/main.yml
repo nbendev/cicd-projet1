@@ -134,7 +134,7 @@ jobs:
 
       - name: déployer les fichiers frontend
         run: |
-          scp -r ./dist "$SERVER_USER@$SERVER_IP:/var/www/server/dist"
+          scp -r ./dist "$SERVER_USER@$SERVER_IP:/var/www"
 
       - name: installer deps prod
         run: |
