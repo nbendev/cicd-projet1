@@ -157,10 +157,18 @@ jobs:
           cd client
           npm ci --prefer-offline
 
+      - name: install backend deps
+        run: |
+          cd server
+          npm ci --prefer-offline
+
       - name: lancer le serveur backend
         run: |
           cd server
           npm start &
+
+      - name: wait for backend
+        run: npx wait-on http://localhost:3000/api/user/current
 
       - name: exec cypress
         uses: cypress-io/github-action@v6
@@ -177,6 +185,7 @@ jobs:
         uses: codecov/codecov-action@v5
         env:
             token: ${{ secrets.CODECOV_TOKEN }}
+
 
 
   deploy:
