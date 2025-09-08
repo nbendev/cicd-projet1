@@ -1,55 +1,76 @@
-name: CI/CD  workflow
+name: CI/CD workflow
 
 env:
-    SERVER_IP: "51.68.225.135"
-    SERVER_USER: root
+  SERVER_IP: "51.68.225.135"
+  SERVER_USER: root
 
-
-on:  
-    push:
-      branches: [ main ]
+on:
+  push:
+    branches: [ main ]
 
 jobs:
-    tests:
-        runs-on: ubuntu-latest
-        defaults:
-            run:
-                working-directory: ./server
-        steps:
-            - name: checkout le code
-              uses: actions/checkout@v4
-            - name: installer node.js
-              uses: actions/setup-node@v4
-              with:
-                cache: 'npm'
-                cache-dependency-path: ./server/package-lock.json
-            - name: install dependencies
-              run: npm ci --cache .npm --prefer-offline
-            - name: vérifie le code
-              run: npm run lint
-            - name: vérifie les vulnérabilités des dépendances
-              run: |
-                  npm audit || true
-                  npm audit fix || true
-                  npm audit --audit-level=critical
-            - name: Execute tests
-              run: npm run test:ci
+  tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./server
+    steps:
+      - name: checkout le code
+        uses: actions/checkout@v4
 
-    deploy:
-        needs: tests
-        runs-on: ubuntu-latest
-        steps:
-            - name: checkout le code
-              uses: actions/checkout@v4
-            - name: déployer sur le serveur
-              run: |
-                  eval $(ssh-agent -s)
-                  ssh-add - <<< "${{ secrets.SSH_KEY_VPS }}"
-                  mkdir -p ~/.ssh
-                  ssh-keyscan -H $SERVER_IP >> ~/.ssh/known_hosts
-                  scp -r ./server $SERVER_USER@$SERVER_IP:/var/www
-                  ssh $SERVER_USER@$SERVER_IP "cd /var/www/server && npm install --omit=dev"
-                  ssh $SERVER_USER@$SERVER_IP "cd /var/www/server && pm2 startOrRestart ecosystem.config.js --env production && pm2 save"
+      - name: installer node.js
+        uses: actions/setup-node@v4
+        with:
+          cache: 'npm'
+          cache-dependency-path: ./server/package-lock.json
 
+      - name: install dependencies
+        run: npm ci --cache .npm --prefer-offline
 
+      - name: vérifie le code
+        run: npm run lint
 
+      - name: audit & fix vulnérabilités
+        run: |
+          npm audit fix || true
+          npm audit --audit-level=critical
+
+      - name: execute tests
+        run: npm run test:ci
+
+  deploy:
+    needs: tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: checkout le code
+        uses: actions/checkout@v4
+
+      - name: charger la clé SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_KEY_VPS }}
+
+      - name: autoriser l’hôte
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H "$SERVER_IP" >> ~/.ssh/known_hosts
+
+      - name: préparer le répertoire distant
+        run: |
+          ssh -o StrictHostKeyChecking=accept-new "$SERVER_USER@$SERVER_IP" \
+            "mkdir -p /var/www/server"
+
+      - name: déployer les fichiers
+        run: |
+          rsync -az --delete ./server/ "$SERVER_USER@$SERVER_IP:/var/www/server/"
+          ssh "$SERVER_USER@$SERVER_IP" "ls -al /var/www && ls -al /var/www/server"
+
+      - name: installer deps prod
+        run: |
+          ssh "$SERVER_USER@$SERVER_IP" \
+            "cd /var/www/server && npm ci --omit=dev"
+
+      - name: redémarrer pm2
+        run: |
+          ssh "$SERVER_USER@$SERVER_IP" \
+            "cd /var/www/server && pm2 startOrRestart ecosystem.config.js --env production && pm2 save"
