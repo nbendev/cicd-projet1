@@ -100,11 +100,42 @@ jobs:
           name: build
           path: client/dist
 
+  build-e2e-frontend:
+    needs: check-frontend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./client
+    steps:
+      - name: checkout le code
+        uses: actions/checkout@v5
+
+      - name: installer node.js
+        uses: actions/setup-node@v5
+        with:
+          cache: 'npm'
+          cache-dependency-path: ./client/package-lock.json
+
+      - name: install dependencies
+        run: npm ci --prefer-offline
+
+        
+      - name: Build application frontend
+        run: npm run build
+    
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4.6.2
+        with:
+          name: builde2e
+          path: client/dist
 
 
   test-e2e-frontend:
-    needs: build-frontend
+    needs: build-e2e-frontend
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        browser: [chrome, "edge", "firefox"]
     steps:
       - name: checkout le code
         uses: actions/checkout@v5
@@ -115,17 +146,13 @@ jobs:
           cache: 'npm'
           cache-dependency-path: '**/package-lock.json'
 
-      - name: install dependencies
-        run: |
-          cd client
-          npm ci --prefer-offline
-          
-      - name: build frontend
-        run: |
-          cd client
-          npm run build:e2e
+      - name: load e2e build
+        uses: actions/download-artifact@v5
+        with:
+          name: builde2e
+          path: ./client/dist
 
-      - name: install client dependencies
+      - name: install dependencies
         run: |
           cd client
           npm ci --prefer-offline
@@ -134,23 +161,26 @@ jobs:
         run: |
           cd server
           npm start &
+
       - name: exec cypress
         uses: cypress-io/github-action@v6
         with:
           working-directory: ./client
-          browser: chrome
+          browser: ${{ matrix.browser }}
           start: npm run preview
           wait-on: http://localhost:4173
           wait-on-timeout: 60
           config: baseUrl=http://localhost:4173
+
       - name: Upload coverage reports to Codecov
+        if: matrix.browser == 'chrome'
         uses: codecov/codecov-action@v5
         env:
             token: ${{ secrets.CODECOV_TOKEN }}
 
 
   deploy:
-    needs: [check-tests-backend, test-e2e-frontend]
+    needs: [check-tests-backend, test-e2e-frontend, build-frontend]
     runs-on: ubuntu-latest
     steps:
       - name: checkout le code
