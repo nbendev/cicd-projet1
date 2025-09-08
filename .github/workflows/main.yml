@@ -16,10 +16,10 @@ jobs:
         working-directory: ./server
     steps:
       - name: checkout le code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: installer node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           cache: 'npm'
           cache-dependency-path: ./server/package-lock.json
@@ -50,10 +50,10 @@ jobs:
         working-directory: ./client
     steps:
       - name: checkout le code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: installer node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           cache: 'npm'
           cache-dependency-path: ./client/package-lock.json
@@ -79,10 +79,10 @@ jobs:
         working-directory: ./client
     steps:
       - name: checkout le code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: installer node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           cache: 'npm'
           cache-dependency-path: ./client/package-lock.json
@@ -93,7 +93,7 @@ jobs:
       - name: Build application frontend
         run: npm run build
       - name: upload build artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: build
           path: ./client/dist
@@ -104,10 +104,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout le code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: installer node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           cache: 'npm'
           cache-dependency-path: '**/package-lock.json'
@@ -117,7 +117,7 @@ jobs:
           cd server
           npm ci --prefer-offline
       - name: download build artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v5
         with:
           name: build
           path: ./client/dist
@@ -140,10 +140,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: checkout le code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: download build artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: build
           path: ./dist
