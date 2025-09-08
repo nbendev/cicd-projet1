@@ -124,7 +124,7 @@ jobs:
       - name: lancer le serveur backend
         run: |
           cd server
-          npm start
+          npm start &
       - name: exec cypress
         uses: cypress-io/github-action@v6
         with:
